@@ -1,11 +1,12 @@
 from . import db
+from sqlalchemy.dialects.sqlite import JSON
 
-class Session(db.Model):
+class Sesion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    date = db.Column(db.String(20))
-    session_number = db.Column(db.Integer, unique=True)
-    day_type = db.Column(db.String(20))
-    moment = db.Column(db.String(50))
-    submoment = db.Column(db.String(50))
-    content = db.Column(db.String(100))
-    players = db.Column(db.String(200))
+    numero_sesion = db.Column(db.String(10), unique=True, nullable=False)
+    fecha = db.Column(db.String(20), nullable=False)
+    tipo_dia = db.Column(db.String(20), nullable=False)
+    duracion = db.Column(db.Integer, nullable=False)
+    jugadores_disponibles = db.Column(JSON)
+    modulos = db.Column(JSON)
+    observaciones = db.Column(db.Text)

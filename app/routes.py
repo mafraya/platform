@@ -1,28 +1,46 @@
-from flask import render_template, request, redirect, url_for
+from flask import Blueprint, request, jsonify
+from .models import Sesion
 from . import db
-from .models import Session
-from flask import current_app as app
 
-MOMENTS = {
-    'Ofensivo': ['Salida corta', 'Progresión', 'Finalización'],
-    'Defensivo': ['Presión alta', 'Bloque medio', 'Bloque bajo'],
-}
+main = Blueprint('main', __name__)
 
-@app.route("/", methods=["GET", "POST"])
-def index():
-    if request.method == "POST":
-        new_session = Session(
-            date=request.form["date"],
-            session_number=request.form["session_number"],
-            day_type=request.form["day_type"],
-            moment=request.form["moment"],
-            submoment=request.form["submoment"],
-            content=request.form["content"],
-            players=request.form["players"]
-        )
-        db.session.add(new_session)
-        db.session.commit()
-        return redirect(url_for("index"))
+@main.route('/sesiones', methods=['GET'])
+def get_sesiones():
+    sesiones = Sesion.query.all()
+    result = []
+    for s in sesiones:
+        result.append({
+            "numeroSesion": s.numero_sesion,
+            "fecha": s.fecha,
+            "tipoDia": s.tipo_dia,
+            "duracion": s.duracion,
+            "jugadoresDisponibles": s.jugadores_disponibles,
+            "modulos": s.modulos,
+            "observaciones": s.observaciones
+        })
+    return jsonify(result)
 
-    sessions = Session.query.all()
-    return render_template("index.html", sessions=sessions, moments=MOMENTS)
+@main.route('/sesiones/<numero>', methods=['GET'])
+def get_sesion(numero):
+    sesion = Sesion.query.filter_by(numero_sesion=numero).first()
+    if sesion:
+        return jsonify({"exists": True})
+    return jsonify({"exists": False})
+
+@main.route('/sesiones', methods=['POST'])
+def create_sesion():
+    data = request.get_json()
+    if Sesion.query.filter_by(numero_sesion=data["numeroSesion"]).first():
+        return jsonify({"error": "Sesión ya existe"}), 400
+    nueva = Sesion(
+        numero_sesion=data["numeroSesion"],
+        fecha=data["fecha"],
+        tipo_dia=data["tipoDia"],
+        duracion=data["duracion"],
+        jugadores_disponibles=data["jugadoresDisponibles"],
+        modulos=data["modulos"],
+        observaciones=data["observaciones"]
+    )
+    db.session.add(nueva)
+    db.session.commit()
+    return jsonify({"message": "Sesión guardada exitosamente"}), 201

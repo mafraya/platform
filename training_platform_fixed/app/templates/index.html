@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestión de Entrenamientos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-900">
+    <div class="max-w-4xl mx-auto p-6">
+        <h1 class="text-3xl font-bold mb-6 text-center">📋 Nueva Sesión de Entrenamiento</h1>
+
+        <form method="POST" class="grid grid-cols-1 gap-4 bg-white p-6 rounded-xl shadow">
+            <input type="text" name="date" placeholder="Fecha (DD-MM-AAAA)" class="input" required>
+            <input type="number" name="session_number" placeholder="Número de sesión" class="input" required>
+            <input type="text" name="day_type" placeholder="Tipo de día" class="input" required>
+
+            <select name="moment" id="moment" class="input" required>
+                <option value="">Seleccionar momento</option>
+                {% for m in moments %}
+                <option value="{{ m }}">{{ m }}</option>
+                {% endfor %}
+            </select>
+
+            <select name="submoment" class="input" required>
+                <option value="">Seleccionar submomento</option>
+            </select>
+
+            <input type="text" name="content" placeholder="Contenido específico" class="input" required>
+            <input type="text" name="players" placeholder="Jugadores (coma separados o 'Todos')" class="input">
+
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                Guardar sesión
+            </button>
+        </form>
+
+        <div class="mt-10">
+            <h2 class="text-xl font-bold mb-4">🗂️ Historial de Sesiones</h2>
+            <ul class="bg-white rounded shadow divide-y divide-gray-100">
+                {% for s in sessions %}
+                <li class="p-4">
+                    <strong>Sesión {{ s.session_number }}</strong> ({{ s.date }}) - {{ s.day_type }}<br>
+                    Momento: {{ s.moment }} > {{ s.submoment }} | {{ s.content }}<br>
+                    Jugadores: {{ s.players }}
+                </li>
+                {% else %}
+                <li class="p-4 text-gray-400">No hay sesiones registradas aún.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const momentSelect = document.querySelector('select[name="moment"]');
+        const submomentSelect = document.querySelector('select[name="submoment"]');
+
+        const moments = {{ moments | tojson }};
+
+        momentSelect.addEventListener("change", function () {
+            const selected = this.value;
+            const subs = moments[selected] || [];
+            submomentSelect.innerHTML = '<option value="">Seleccionar submomento</option>';
+            subs.forEach(sub => {
+                const opt = document.createElement("option");
+                opt.value = sub;
+                opt.textContent = sub;
+                submomentSelect.appendChild(opt);
+            });
+        });
+    </script>
+
+    <style>
+        .input {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 0.5rem;
+            width: 100%;
+        }
+    </style>
+</body>
+</html>
